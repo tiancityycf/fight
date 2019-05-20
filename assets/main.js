@@ -9,6 +9,7 @@ cc.Class({
 		move : false,
 		r:0,
 		rr:0,
+		uid:0,
     },
 
     onLoad () {
@@ -23,6 +24,7 @@ cc.Class({
 		 // 打开一个 web socket
         window.ws = new WebSocket('ws://127.0.0.1:3653')
         var uid = Math.ceil(Math.random()*100);
+		that.uid = uid;
         var name = '用户'+uid;
         window.ws.onopen = function()
         {
@@ -49,12 +51,25 @@ cc.Class({
                 var json = JSON.parse(decoder.decode(new DataView(arrayBuffer)))
 				
 				if(json.RESPONSE!==undefined && json.RESPONSE.Body!==undefined){
-					console.log(json.RESPONSE.Body);
+					//console.log(json.RESPONSE.Body,json.RESPONSE.Body.length);
+					
 					let body = JSON.parse(json.RESPONSE.Body);
-					if(body['r']>that.rr){
-						that.zhujue.x = parseFloat(body['x']);
-						that.rr = body['r'];
+					
+					for(var i in body) {
+						 console.log(i,":",body[i]['Position']);
+						 if(body[i]['Position']!=""){
+							console.log(that.uid , i);
+							if(that.uid != i){
+								console.log(that.uid);
+								let position = JSON.parse(body[i]['Position']);
+								if(position['r']>that.rr){
+									that.zhujue.x = parseFloat(position['x']);
+									that.rr = position['r'];
+								}
+							}
+						 }
 					}
+					
 				}
 				
                 //console.log('response text msg: ' + JSON.stringify(json));
@@ -80,6 +95,8 @@ cc.Class({
 			} else if (x <= -480) {
 				x = 0;
 			}
+			
+			this.zhujue.x = x;
 			this.r++;
 			let body = {x:x,r:this.r};
 	
